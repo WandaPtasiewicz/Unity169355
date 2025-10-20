@@ -1,53 +1,37 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using TMPro;
+
+//script lab 3
 
 public class PlayerController : MonoBehaviour
 {
     private Rigidbody rb;
     private float movementX;
     private float movementY;
-    public float speed = 0;
-    private int count;
-    public TextMeshProUGUI countText;
-    public GameObject winTextObject;
+    private bool isJumping = false;
+    public float speed = 5;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    // Backing field for health
+    [SerializeField]
+    private int health = 100;
+
+    // Property to control access to health
+    public int Health
+    {
+        get { return health; }
+        set
+        {
+            // Ensure health is within a valid range
+            health = Mathf.Clamp(value, 0, 100);
+            Debug.Log("Player Health: " + health);
+        }
+    }
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        count = 0;
-        SetCountText();
-        winTextObject.SetActive(false);
-    }
-
-    void SetCountText()
-    {
-        countText.text = "Count: " + count.ToString();
-        if (count >= 7)
-        {
-            winTextObject.SetActive(true);
-            Destroy(GameObject.FindGameObjectWithTag("Enemy"));
-        }
-    }
-
-    private void FixedUpdate()
-    {
-        Vector3 movement = new Vector3(movementX, 0.0f, movementY);
-        rb.AddForce(movement * speed);
-    }
-
-    void OnTriggerEnter(Collider other)
-    {
-        if (other.gameObject.CompareTag("PickUp"))
-        {
-            other.gameObject.SetActive(false);
-            count = count + 1;
-            SetCountText();
-        }
     }
 
     void OnMove(InputValue movementValue)
@@ -57,20 +41,15 @@ public class PlayerController : MonoBehaviour
         movementY = movementVector.y;
     }
 
-    private void OnCollisionEnter(Collision collision)
+    void OnJump(InputValue movementValue)
     {
-        if (collision.gameObject.CompareTag("Enemy"))
-        {
-            // Destroy the current object
-            Destroy(gameObject);
-            // Update the winText to display "You Lose!"
-            winTextObject.gameObject.SetActive(true);
-            winTextObject.GetComponent<TextMeshProUGUI>().text = "You Lose!";
-        }
+        rb.AddForce(Vector3.up * 5, ForceMode.Impulse);
+        Health -= 10;
+
     }
-    // Update is called once per frame
-    void Update()
+    private void FixedUpdate()
     {
-        
+        Vector3 movement = new Vector3(movementX, 0.0f, movementY);
+        rb.AddForce(movement * speed);
     }
 }
